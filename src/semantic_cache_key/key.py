@@ -115,12 +115,19 @@ def _normalize_context(items: Optional[Iterable[Any]]) -> list:
 def semantic_cache_key(
     request: Mapping[str, Any],
     *,
-    version: str = "v1",
+    version: Optional[str] = None,
 ) -> str:
     """JS-compatible signature: take a single ``request`` dict.
 
     Returns the full 64-character hex digest; matches the JS sibling exactly.
+
+    The version tag is resolved in this order: the explicit ``version=``
+    keyword (if given), then a ``"version"`` key inside ``request``, then the
+    ``"v1"`` default. This lets callers bake cache invalidation straight into
+    the request dict, e.g. ``semantic_cache_key({..., "version": "v2"})``.
     """
+    if version is None:
+        version = request.get("version", "v1")
     return key(
         prompt=request.get("prompt", request.get("input", "")),
         model=request.get("model", ""),

@@ -87,3 +87,43 @@ def test_stable_value_sorts_dict_keys_recursively():
 def test_semantic_cache_key_js_compat_returns_full_64_char_digest():
     h = semantic_cache_key({"prompt": "hello", "model": "gpt-5"})
     assert len(h) == 64
+
+
+def test_semantic_cache_key_honors_version_in_request_dict():
+    base = semantic_cache_key({"prompt": "p", "model": "m"})
+    bumped = semantic_cache_key({"prompt": "p", "model": "m", "version": "v2"})
+    assert base != bumped
+
+
+def test_semantic_cache_key_explicit_version_overrides_request_dict():
+    via_kwarg = semantic_cache_key({"prompt": "p", "model": "m"}, version="v2")
+    via_dict = semantic_cache_key({"prompt": "p", "model": "m", "version": "v2"})
+    assert via_kwarg == via_dict
+
+
+def test_semantic_cache_key_matches_key_with_length_64():
+    via_dict = semantic_cache_key({"prompt": "Hello", "model": "gpt-5"})
+    via_key = key(prompt="Hello", model="gpt-5", length=64)
+    assert via_dict == via_key
+
+
+def test_semantic_cache_key_input_alias_for_prompt():
+    via_input = semantic_cache_key({"input": "hello", "model": "m"})
+    via_prompt = semantic_cache_key({"prompt": "hello", "model": "m"})
+    assert via_input == via_prompt
+
+
+def test_key_unnamed_tools_are_order_invariant():
+    a = key("p", "m", tools=[{"foo": 1}, {"bar": 2}])
+    b = key("p", "m", tools=[{"bar": 2}, {"foo": 1}])
+    assert a == b
+
+
+def test_key_context_strings_are_normalized():
+    a = key("p", "m", retrieval_context=["  DOC-A  "])
+    b = key("p", "m", retrieval_context=["doc-a"])
+    assert a == b
+
+
+def test_stable_value_preserves_list_order():
+    assert stable_value([3, 1, 2]) == [3, 1, 2]

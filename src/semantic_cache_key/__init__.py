@@ -4,7 +4,8 @@ Public surface:
 
     from semantic_cache_key import key, normalize_text, stable_value
 
-* ``key(prompt, model, ...)`` -> 64-char hex sha256, or ``length=`` short hash
+* ``key(prompt, model, ...)`` -> 16-char hex by default; pass ``length=64``
+  for the full sha256 digest (matches the JS sibling / ``semantic_cache_key``)
 * ``normalize_text(s)``     -> lowercase + collapse whitespace + trim
 * ``stable_value(v)``       -> deterministically-ordered dict / list
 
